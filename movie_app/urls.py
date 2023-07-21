@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/v1/directors/<int:pk>/', views.director_detail_api_view),
     path('api/v1/movies/<int:pk>/', views.movie_detail_api_view),
     path('api/v1/reviews/<int:pk>/', views.review_detail_api_view),
+    path('api/v1/movies/reviews/', views.movies_reviews_view),
     ]
