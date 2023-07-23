@@ -23,7 +23,12 @@ class MovieSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Review
-        fields = ['text', 'stars']
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['movie'] = instance.movie.title  # Выводим название фильма вместо ID
+        return representation
 
 
 class MovieWithReviewsSerializer(serializers.ModelSerializer):
