@@ -2,6 +2,21 @@ from . import serializers
 from . import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
+
+
+@api_view(['GET', 'POST'])
+def genres_list_api_view(request):
+    if request.method == 'GET':
+        genres = models.Genre.objects.all()
+        serializer = serializers.GenreSerializer(genres, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = serializers.GenreSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(status=400, data=serializer.errors)
 
 
 @api_view(['GET', 'POST'])
@@ -15,7 +30,7 @@ def directors_list_api_view(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
 
 
 @api_view(['GET', 'POST'])
@@ -25,11 +40,19 @@ def movies_list_api_view(request):
         serializer = serializers.MovieSerializer(movies, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serializer = serializers.MovieSerializer(data=request.data)
+        serializer = serializers.MovieValidateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors)
+            director = models.Director.objects.get(id=serializer.validated_data['director'])
+            genres = models.Genre.objects.filter(id__in=serializer.validated_data['genres'])
+            movie = models.Movie.objects.create(
+                title=serializer.validated_data['title'],
+                description=serializer.validated_data['description'],
+                duration=serializer.validated_data['duration'],
+                director=director,
+            )
+            movie.genres.set(genres)
+            return Response(serializers.MovieSerializer(movie).data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 
 @api_view(['GET', 'POST'])
@@ -43,7 +66,7 @@ def reviews_list_api_view(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
 
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
@@ -60,13 +83,13 @@ def director_detail_api_view(request, pk):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     elif request.method == 'PATCH':
         serializer = serializers.DirectorSerializer(instance=director, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     else:
         director.delete()
         return Response(status=204)
@@ -86,13 +109,13 @@ def movie_detail_api_view(request, pk):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     elif request.method == 'PATCH':
         serializer = serializers.MovieSerializer(instance=movie, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     else:
         movie.delete()
         return Response(status=204)
@@ -112,13 +135,13 @@ def review_detail_api_view(request, pk):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     elif request.method == 'PATCH':
         serializer = serializers.ReviewSerializer(instance=review, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors)
+        return Response(status=400, data=serializer.errors)
     else:
         review.delete()
         return Response(status=204)

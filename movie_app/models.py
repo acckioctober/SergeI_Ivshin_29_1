@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class Genre(models.Model):
+    name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+
 class Director(models.Model):
     name = models.CharField(max_length=50)
     age = models.IntegerField()
@@ -19,6 +26,7 @@ class Movie(models.Model):
     description = models.TextField()
     duration = models.IntegerField()
     director = models.ForeignKey(Director, on_delete=models.CASCADE, related_name='director_movies')
+    genres = models.ManyToManyField(Genre, related_name='genre_movies')
 
     def __str__(self):
         return self.title
